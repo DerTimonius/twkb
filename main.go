@@ -23,7 +23,7 @@ func (s status) getPrev() status {
 	return s - 1
 }
 
-const margin = 4
+const margin = 3
 
 var board *Board
 
@@ -31,6 +31,7 @@ const (
 	todo status = iota
 	inProgress
 	done
+	never
 )
 
 func main() {
@@ -42,7 +43,6 @@ func main() {
 	defer f.Close()
 
 	board = NewBoard()
-	board.getFromTW()
 	board.initLists()
 	p := tea.NewProgram(board)
 	if _, err := p.Run(); err != nil {

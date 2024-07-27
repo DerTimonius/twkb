@@ -1,6 +1,8 @@
 package main
 
 import (
+	"strings"
+
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -50,13 +52,13 @@ func (c column) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		c.setSize(msg.Width, msg.Height)
-		c.list.SetSize(msg.Width/margin, msg.Height/2)
+		c.list.SetSize(msg.Width/margin, msg.Height-12)
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keys.Edit):
 			if len(c.list.VisibleItems()) != 0 {
 				task := c.list.SelectedItem().(Task)
-				f := NewForm(task.title, task.description)
+				f := NewForm(task.description, task.project, strings.Join(task.tags, " "), task.due)
 				f.index = c.list.Index()
 				f.col = c
 				return f.Update(nil)
@@ -68,8 +70,10 @@ func (c column) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return f.Update(nil)
 		case key.Matches(msg, keys.Delete):
 			return c, c.DeleteCurrent()
-		case key.Matches(msg, keys.Enter), key.Matches(msg, keys.Space):
+		case key.Matches(msg, keys.Space):
 			return c, c.MoveToNext()
+		case key.Matches(msg, keys.Enter):
+			return c, c.MoveToDone()
 		}
 	}
 	c.list, cmd = c.list.Update(msg)
@@ -128,9 +132,33 @@ func (c *column) MoveToNext() tea.Cmd {
 	if task, ok = c.list.SelectedItem().(Task); !ok {
 		return nil
 	}
+
+	// Don't move the task if it is in the done column
+	if task.status == done {
+		return nil
+	}
+
 	// move item
 	c.list.RemoveItem(c.list.Index())
-	task.status = c.status.getNext()
+	task.StartStop()
+
+	// refresh list
+	var cmd tea.Cmd
+	c.list, cmd = c.list.Update(nil)
+
+	return tea.Sequence(cmd, func() tea.Msg { return moveMsg{task} })
+}
+
+func (c *column) MoveToDone() tea.Cmd {
+	var task Task
+	var ok bool
+	// If nothing is selected, the SelectedItem will return Nil.
+	if task, ok = c.list.SelectedItem().(Task); !ok {
+		return nil
+	}
+
+	c.list.RemoveItem(c.list.Index())
+	task.status = done
 
 	// refresh list
 	var cmd tea.Cmd

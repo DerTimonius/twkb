@@ -10,31 +10,37 @@ import (
 )
 
 type Form struct {
-	description textarea.Model
+	description textinput.Model
+	project     textinput.Model
+	label       textinput.Model
+	due         textinput.Model
 	help        help.Model
-	title       textinput.Model
 	col         column
 	index       int
 }
 
 func newDefaultForm() *Form {
-	return NewForm("task name", "")
+	return NewForm("task name", "project", "labels", "due")
 }
 
-func NewForm(title, description string) *Form {
+func NewForm(description, project, label, due string) *Form {
 	form := Form{
 		help:        help.New(),
-		title:       textinput.New(),
-		description: textarea.New(),
+		description: textinput.New(),
+		project:     textinput.New(),
+		label:       textinput.New(),
+		due:         textinput.New(),
 	}
-	form.title.Placeholder = title
 	form.description.Placeholder = description
-	form.title.Focus()
+	form.project.Placeholder = project
+	form.label.Placeholder = label
+	form.due.Placeholder = due
+	form.description.Focus()
 	return &form
 }
 
 func (f Form) CreateTask() Task {
-	return Task{f.col.status, f.title.Value(), f.description.Value()}
+	return Task{status: todo, description: f.description.Value(), project: f.project.Value()}
 }
 
 func (f Form) Init() tea.Cmd {
@@ -55,20 +61,39 @@ func (f Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, keys.Back):
 			return board.Update(nil)
 		case key.Matches(msg, keys.Enter):
-			if f.title.Focused() {
-				f.title.Blur()
-				f.description.Focus()
-				return f, textarea.Blink
-			}
 			// Return the completed form as a message.
 			return board.Update(f)
+		case key.Matches(msg, keys.Tab):
+			if f.description.Focused() {
+				f.description.Blur()
+				f.project.Focus()
+				return f, textarea.Blink
+			}
+			if f.project.Focused() {
+				f.project.Blur()
+				f.label.Focus()
+				return f, textarea.Blink
+			}
+			if f.label.Focused() {
+				f.label.Blur()
+				f.due.Focus()
+				return f, textarea.Blink
+			}
 		}
 	}
-	if f.title.Focused() {
-		f.title, cmd = f.title.Update(msg)
+	if f.description.Focused() {
+		f.description, cmd = f.description.Update(msg)
 		return f, cmd
 	}
-	f.description, cmd = f.description.Update(msg)
+	if f.project.Focused() {
+		f.project, cmd = f.project.Update(msg)
+		return f, cmd
+	}
+	if f.label.Focused() {
+		f.label, cmd = f.label.Update(msg)
+		return f, cmd
+	}
+	f.due, cmd = f.due.Update(msg)
 	return f, cmd
 }
 
@@ -76,7 +101,9 @@ func (f Form) View() string {
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
 		"Create a new task",
-		f.title.View(),
 		f.description.View(),
+		f.project.View(),
+		f.label.View(),
+		f.due.View(),
 		f.help.View(keys))
 }

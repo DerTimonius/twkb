@@ -30,6 +30,7 @@ type keyMap struct {
 	Help   key.Binding
 	Quit   key.Binding
 	Back   key.Binding
+	Tab    key.Binding
 }
 
 var keys = keyMap{
@@ -38,8 +39,8 @@ var keys = keyMap{
 		key.WithHelp("a/n", "new"),
 	),
 	Edit: key.NewBinding(
-		key.WithKeys("e"),
-		key.WithHelp("e", "edit"),
+		key.WithKeys("e", "m"),
+		key.WithHelp("e/m", "edit/modify"),
 	),
 	Delete: key.NewBinding(
 		key.WithKeys("d"),
@@ -63,11 +64,11 @@ var keys = keyMap{
 	),
 	Space: key.NewBinding(
 		key.WithKeys(" "),
-		key.WithHelp("space", "space"),
+		key.WithHelp("space", "start/stop task"),
 	),
 	Enter: key.NewBinding(
 		key.WithKeys("enter"),
-		key.WithHelp("enter", "enter"),
+		key.WithHelp("enter", "finish task"),
 	),
 	Help: key.NewBinding(
 		key.WithKeys("?"),
@@ -80,5 +81,9 @@ var keys = keyMap{
 	Back: key.NewBinding(
 		key.WithKeys("esc"),
 		key.WithHelp("esc", "back"),
+	),
+	Tab: key.NewBinding(
+		key.WithKeys("tab"),
+		key.WithHelp("tab", "Tab"),
 	),
 }

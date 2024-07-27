@@ -10,54 +10,45 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 )
 
-// Provides the mock data to fill the kanban board
-
 func (b *Board) initLists() {
+	tasks := getFromTW()
+	var todoTasks []Task
+	var doingTasks []Task
+	var doneTasks []Task
+	// var neverTasks []TwTask
+
+	for _, t := range tasks {
+		switch t.status {
+		case done:
+			doneTasks = append(doneTasks, t)
+		case inProgress:
+			doingTasks = append(doingTasks, t)
+		case todo:
+			todoTasks = append(todoTasks, t)
+			// default:
+			// 	neverTasks = append(neverTasks, t)
+		}
+	}
+
+	// TODO: add a never column
 	b.cols = []column{
 		newColumn(todo),
 		newColumn(inProgress),
 		newColumn(done),
 	}
+
 	// Init To Do
 	b.cols[todo].list.Title = "To Do"
-	b.cols[todo].list.SetItems([]list.Item{
-		Task{status: todo, title: "buy milk", description: "strawberry milk"},
-		Task{status: todo, title: "eat sushi", description: "negitoro roll, miso soup, rice"},
-		Task{status: todo, title: "fold laundry", description: "or wear wrinkly t-shirts"},
-	})
+	b.cols[todo].list.SetItems(convertToListItems(todoTasks))
 	// Init in progress
 	b.cols[inProgress].list.Title = "In Progress"
-	b.cols[inProgress].list.SetItems([]list.Item{
-		Task{status: inProgress, title: "write code", description: "don't worry, it's Go"},
-	})
+	b.cols[inProgress].list.SetItems(convertToListItems(doingTasks))
 	// Init done
 	b.cols[done].list.Title = "Done"
-	b.cols[done].list.SetItems([]list.Item{
-		Task{status: done, title: "stay cool", description: "as a cucumber"},
-	})
+	b.cols[done].list.SetItems(convertToListItems(doneTasks))
 }
 
-type twstatus int
-
-const (
-	pending twstatus = iota
-	completed
-)
-
-type TwTask struct {
-	description string
-	uuid        string
-	start       string
-	modified    string
-	status      string
-	project     string
-	due         string
-	tags        []string
-	id          int
-	urgency     float64
-}
-
-func (b *Board) getFromTW() {
+func getFromTW() []Task {
 	cmd := exec.Command("task", "export")
 	var out bytes.Buffer
 	cmd.Stdout = &out
@@ -74,10 +65,16 @@ func (b *Board) getFromTW() {
 		os.Exit(1)
 	}
 
-	var tasks []TwTask
+	var tasks []Task
 
 	for _, v := range result {
-		task := TwTask{}
+		task := Task{}
+		if start, ok := v["start"].(string); ok {
+			task.start = start
+		}
+		if modified, ok := v["modified"].(string); ok {
+			task.modified = modified
+		}
 		if uuid, ok := v["uuid"].(string); ok {
 			task.uuid = uuid
 		}
@@ -85,16 +82,18 @@ func (b *Board) getFromTW() {
 			task.description = description
 		}
 		if status, ok := v["status"].(string); ok {
-			task.status = status
-		}
-		if modified, ok := v["modified"].(string); ok {
-			task.modified = modified
+			if status == "completed" {
+				task.status = done
+			} else if status == "pending" && task.start != "" {
+				task.status = inProgress
+			} else if status == "deleted" {
+				task.status = never
+			} else {
+				task.status = todo
+			}
 		}
 		if due, ok := v["due"].(string); ok {
 			task.due = due
-		}
-		if start, ok := v["start"].(string); ok {
-			task.start = start
 		}
 		if project, ok := v["project"].(string); ok {
 			task.project = project
@@ -105,32 +104,23 @@ func (b *Board) getFromTW() {
 		if urgency, ok := v["urgency"].(float64); ok {
 			task.urgency = urgency
 		}
-		if tags, ok := v["tags"].([]string); ok {
-			task.tags = tags
+		if tags, ok := v["tags"].([]interface{}); ok {
+			for _, tag := range tags {
+				if t, ok := tag.(string); ok {
+					task.tags = append(task.tags, t)
+				}
+			}
 		}
 		tasks = append(tasks, task)
 	}
 
-	var todoTasks []TwTask
-	var doingTasks []TwTask
-	var doneTasks []TwTask
+	return tasks
+}
 
-	for _, t := range tasks {
-		if t.status == "completed" || t.status == "deleted" {
-			doneTasks = append(doneTasks, t)
-			continue
-		}
-		if t.status == "pending" && t.start != "" {
-			doingTasks = append(doingTasks, t)
-			continue
-		}
-		if t.status == "pending" {
-			todoTasks = append(todoTasks, t)
-			continue
-		}
+func convertToListItems(tasks []Task) []list.Item {
+	items := make([]list.Item, len(tasks))
+	for i, task := range tasks {
+		items[i] = task
 	}
-
-	fmt.Printf("todoTasks: %v\n", todoTasks)
-	fmt.Printf("doingTasks: %v\n", doingTasks)
-	fmt.Printf("doneTasks: %v\n", doneTasks)
+	return items
 }

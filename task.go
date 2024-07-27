@@ -1,32 +1,45 @@
 package main
 
+import "fmt"
+
 type Task struct {
-	status      status
-	title       string
 	description string
+	uuid        string
+	start       string
+	modified    string
+	project     string
+	due         string
+	tags        []string
+	status      status
+	id          int
+	urgency     float64
 }
 
-func NewTask(status status, title, description string) Task {
-	return Task{status: status, title: title, description: description}
-}
-
-func (t *Task) Next() {
-	if t.status == done {
+func (t *Task) StartStop() {
+	if t.status == inProgress {
 		t.status = todo
 	} else {
-		t.status++
+		t.status = inProgress
 	}
+}
+
+func (t *Task) Finish() {
+	t.status = done
+}
+
+func (t *Task) Delete() {
+	t.status = never
 }
 
 // implement the list.Item interface
 func (t Task) FilterValue() string {
-	return t.title
+	return t.description
 }
 
 func (t Task) Title() string {
-	return t.title
+	return t.description
 }
 
 func (t Task) Description() string {
-	return t.description
+	return fmt.Sprintf("Project: %s, Tags: %s, Due: %s, Urgency: %.1f", t.project, t.tags, t.due, t.urgency)
 }
