@@ -41,16 +41,13 @@ type Form struct {
 	label       textinput.Model
 	due         textinput.Model
 	col         column
-	index       int
-}
-
-type EditForm struct {
-	form        *Form
 	relatedTask Task
+	index       int
+	isEdit      bool
 }
 
 func newDefaultForm() *Form {
-	return NewForm("task name", "project", "labels", "due")
+	return NewForm("task name", "project (no spaces)", "labels (space separted list)", "due (e.g. eod, 2d)")
 }
 
 func NewForm(description, project, label, due string) *Form {
@@ -86,20 +83,22 @@ func (f Form) CreateTask() Task {
 	return Task{status: todo, description: f.description.Value(), project: f.project.Value(), tags: strings.Split(f.label.Value(), " ")}
 }
 
-func NewEditForm(t Task) *EditForm {
+func NewEditForm(t Task) *Form {
 	form := Form{
 		help:        help.New(),
 		description: textinput.New(),
 		project:     textinput.New(),
 		label:       textinput.New(),
 		due:         textinput.New(),
+		isEdit:      true,
+		relatedTask: t,
 	}
 	form.description.SetValue(t.description)
 	form.project.SetValue(t.project)
 	form.label.SetValue(strings.Join(t.tags, " "))
 	form.due.SetValue(t.due)
 	form.description.Focus()
-	return &EditForm{form: &form, relatedTask: t}
+	return &form
 }
 
 func (f Form) Init() tea.Cmd {

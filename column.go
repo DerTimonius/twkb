@@ -60,9 +60,9 @@ func (c column) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if len(c.list.VisibleItems()) != 0 {
 				task := c.list.SelectedItem().(Task)
 				f := NewEditForm(task)
-				f.form.index = c.list.Index()
-				f.form.col = c
-				return f.form.Update(nil)
+				f.index = c.list.Index()
+				f.col = c
+				return f.Update(nil)
 			}
 		case key.Matches(msg, keys.New):
 			f := newDefaultForm()
