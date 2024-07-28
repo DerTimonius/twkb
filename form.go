@@ -14,6 +14,26 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+var (
+	formStyle = lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			Padding(1).
+			Width(50)
+
+	titleStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#96CDFB")).
+			Padding(0, 1).
+			MarginBottom(1)
+
+	inputStyle = lipgloss.NewStyle().
+			BorderStyle(lipgloss.NormalBorder()).
+			BorderForeground(lipgloss.Color("#96CDFB")).
+			PaddingLeft(1)
+
+	fieldStyle = lipgloss.NewStyle().
+			MarginBottom(1)
+)
+
 type Form struct {
 	help        help.Model
 	description textinput.Model
@@ -25,8 +45,8 @@ type Form struct {
 }
 
 type EditForm struct {
-	relatedTask Task
 	form        *Form
+	relatedTask Task
 }
 
 func newDefaultForm() *Form {
@@ -66,7 +86,7 @@ func (f Form) CreateTask() Task {
 	return Task{status: todo, description: f.description.Value(), project: f.project.Value(), tags: strings.Split(f.label.Value(), " ")}
 }
 
-func NewEditForm(t Task) EditForm {
+func NewEditForm(t Task) *EditForm {
 	form := Form{
 		help:        help.New(),
 		description: textinput.New(),
@@ -79,7 +99,7 @@ func NewEditForm(t Task) EditForm {
 	form.label.SetValue(strings.Join(t.tags, " "))
 	form.due.SetValue(t.due)
 	form.description.Focus()
-	return EditForm{form: &form, relatedTask: t}
+	return &EditForm{form: &form, relatedTask: t}
 }
 
 func (f Form) Init() tea.Cmd {
@@ -141,12 +161,25 @@ func (f Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (f Form) View() string {
-	return lipgloss.JoinVertical(
+	title := titleStyle.Render("Create or update a Task")
+
+	inputs := lipgloss.JoinVertical(
 		lipgloss.Left,
-		"Create a new task",
-		f.description.View(),
-		f.project.View(),
-		f.label.View(),
-		f.due.View(),
-		f.help.View(keys))
+		fieldStyle.Render(inputStyle.Render("Description: "+f.description.View())),
+		fieldStyle.Render(inputStyle.Render("Project:     "+f.project.View())),
+		fieldStyle.Render(inputStyle.Render("Label:       "+f.label.View())),
+		fieldStyle.Render(inputStyle.Render("Due:         "+f.due.View())),
+	)
+
+	help := f.help.View(keys)
+
+	return formStyle.Render(
+		lipgloss.JoinVertical(
+			lipgloss.Left,
+			title,
+			inputs,
+			strings.Repeat("─", 48), // Separator line
+			help,
+		),
+	)
 }
