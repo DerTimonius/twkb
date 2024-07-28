@@ -53,7 +53,7 @@ func (c column) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		c.setSize(msg.Width, msg.Height)
-		c.list.SetSize(msg.Width/margin, msg.Height-12)
+		c.list.SetSize(msg.Width/margin, msg.Height-8)
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keys.Edit):

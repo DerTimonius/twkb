@@ -14,7 +14,7 @@ func (k keyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{k.Up, k.Down, k.Left, k.Right},   // first column
 		{k.Space, k.Enter, k.New, k.Edit}, // second column
-		{k.Help, k.Quit},                  // second column
+		{k.Filter, k.Quit},                // second column
 	}
 }
 
@@ -33,16 +33,17 @@ type keyMap struct {
 	Back   key.Binding
 	Tab    key.Binding
 	Submit key.Binding
+	Filter key.Binding
 }
 
 var keys = keyMap{
 	New: key.NewBinding(
-		key.WithKeys("n", "a"),
-		key.WithHelp("a/n", "add task"),
+		key.WithKeys("n"),
+		key.WithHelp("n", "add new task"),
 	),
 	Edit: key.NewBinding(
-		key.WithKeys("e", "m"),
-		key.WithHelp("e/m", "edit/modify focused task"),
+		key.WithKeys("m"),
+		key.WithHelp("m", "modify focused task"),
 	),
 	Delete: key.NewBinding(
 		key.WithKeys("d"),
@@ -91,5 +92,9 @@ var keys = keyMap{
 	Submit: key.NewBinding(
 		key.WithKeys("enter"),
 		key.WithHelp("enter", "submit task"),
+	),
+	Filter: key.NewBinding(
+		key.WithKeys("/"),
+		key.WithHelp("/", "filter tasks"),
 	),
 }
