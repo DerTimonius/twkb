@@ -35,30 +35,30 @@ func AddCmd(f Form) (string, error) {
 	return strings.TrimSuffix(str, " "), nil
 }
 
-func StartCmd(t Task) (string, error) {
+func StartCmd(t *Task) ([]string, error) {
 	if t.id == 0 {
-		return "", errors.New("cannot start a task with ID 0")
+		return []string{}, errors.New("cannot start a task with ID 0")
 	}
-	return fmt.Sprintf("task %d start", t.id), nil
+	return []string{"task", fmt.Sprint(t.id), "start"}, nil
 }
 
-func StopCmd(t Task) (string, error) {
+func StopCmd(t *Task) ([]string, error) {
 	if t.id == 0 {
-		return "", errors.New("cannot stop a task with ID 0")
+		return []string{}, errors.New("cannot stop a task with ID 0")
 	}
-	return fmt.Sprintf("task %d stop", t.id), nil
+	return []string{"task", fmt.Sprint(t.id), "stop"}, nil
 }
 
-func DoneCmd(t Task) (string, error) {
+func DoneCmd(t *Task) ([]string, error) {
 	if t.id == 0 {
-		return "", errors.New("cannot finish a task with ID 0")
+		return []string{}, errors.New("cannot finish a task with ID 0")
 	}
-	return fmt.Sprintf("task %d done", t.id), nil
+	return []string{"task", fmt.Sprint(t.id), "done"}, nil
 }
 
-func DeleteCmd(t Task) (string, error) {
+func DeleteCmd(t *Task) ([]string, error) {
 	if t.id == 0 {
-		return "", errors.New("cannot delete a task with ID 0")
+		return []string{}, errors.New("cannot delete a task with ID 0")
 	}
-	return fmt.Sprintf("task rc.confirmation=no %d delete", t.id), nil
+	return []string{"task", "rc.confirmation=no", fmt.Sprint(t.id), "delete"}, nil
 }

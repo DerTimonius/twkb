@@ -1,6 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+	"os/exec"
+)
 
 type Task struct {
 	description string
@@ -17,17 +21,69 @@ type Task struct {
 
 func (t *Task) StartStop() {
 	if t.status == inProgress {
+		cmdStr, err := StopCmd(t)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		cmd := exec.Command(cmdStr[0], cmdStr[1:]...)
+		err = cmd.Run()
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
 		t.status = todo
 	} else {
+		cmdStr, err := StartCmd(t)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		cmd := exec.Command(cmdStr[0], cmdStr[1:]...)
+		err = cmd.Run()
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
 		t.status = inProgress
 	}
 }
 
 func (t *Task) Finish() {
+	cmdStr, err := DoneCmd(t)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	cmd := exec.Command(cmdStr[0], cmdStr[1:]...)
+	err = cmd.Run()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
 	t.status = done
 }
 
 func (t *Task) Delete() {
+	cmdStr, err := DeleteCmd(t)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	cmd := exec.Command(cmdStr[0], cmdStr[1:]...)
+	err = cmd.Run()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
 	t.status = never
 }
 

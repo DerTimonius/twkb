@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"strings"
 	"testing"
 )
 
@@ -129,8 +130,8 @@ func TestStartCmd(t *testing.T) {
 
 	for _, tt := range validTests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, _ := StartCmd(tt.task)
-			if result != tt.expected {
+			result, _ := StartCmd(&tt.task)
+			if strings.Join(result, " ") != tt.expected {
 				t.Errorf("StartCmd(%v) = %q, want %q", tt.task, result, tt.expected)
 			}
 		})
@@ -147,7 +148,7 @@ func TestStartCmd(t *testing.T) {
 
 	for _, tt := range errorTests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := StartCmd(tt.task)
+			_, err := StartCmd(&tt.task)
 			if err == nil {
 				t.Fatal("Expected an error, but got nil")
 			}
@@ -170,8 +171,8 @@ func TestStopCmd(t *testing.T) {
 
 	for _, tt := range validTests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, _ := StopCmd(tt.task)
-			if result != tt.expected {
+			result, _ := StopCmd(&tt.task)
+			if strings.Join(result, " ") != tt.expected {
 				t.Errorf("StartCmd(%v) = %q, want %q", tt.task, result, tt.expected)
 			}
 		})
@@ -188,7 +189,7 @@ func TestStopCmd(t *testing.T) {
 
 	for _, tt := range errorTests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := StopCmd(tt.task)
+			_, err := StopCmd(&tt.task)
 			if err == nil {
 				t.Fatal("Expected an error, but got nil")
 			}
@@ -211,8 +212,8 @@ func TestDoneCmd(t *testing.T) {
 
 	for _, tt := range validTests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, _ := DoneCmd(tt.task)
-			if result != tt.expected {
+			result, _ := DoneCmd(&tt.task)
+			if strings.Join(result, " ") != tt.expected {
 				t.Errorf("StartCmd(%v) = %q, want %q", tt.task, result, tt.expected)
 			}
 		})
@@ -229,7 +230,7 @@ func TestDoneCmd(t *testing.T) {
 
 	for _, tt := range errorTests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := DoneCmd(tt.task)
+			_, err := DoneCmd(&tt.task)
 			if err == nil {
 				t.Fatal("Expected an error, but got nil")
 			}
@@ -252,8 +253,8 @@ func TestDeleteCmd(t *testing.T) {
 
 	for _, tt := range validTests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, _ := DeleteCmd(tt.task)
-			if result != tt.expected {
+			result, _ := DeleteCmd(&tt.task)
+			if strings.Join(result, " ") != tt.expected {
 				t.Errorf("StartCmd(%v) = %q, want %q", tt.task, result, tt.expected)
 			}
 		})
@@ -270,7 +271,7 @@ func TestDeleteCmd(t *testing.T) {
 
 	for _, tt := range errorTests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := DeleteCmd(tt.task)
+			_, err := DeleteCmd(&tt.task)
 			if err == nil {
 				t.Fatal("Expected an error, but got nil")
 			}
