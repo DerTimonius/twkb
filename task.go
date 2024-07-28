@@ -19,9 +19,14 @@ type Task struct {
 	status      status
 	id          int
 	urgency     float64
+	blocked     bool
 }
 
 func (t *Task) StartStop() {
+	// don't start the task when it is blocked
+	if t.blocked {
+		return
+	}
 	if t.status == inProgress {
 		cmdStr, err := StopCmd(t)
 		if err != nil {
@@ -139,9 +144,25 @@ func (t Task) FilterValue() string {
 }
 
 func (t Task) Title() string {
-	return t.description
+	var blockedMsg string
+	if t.blocked {
+		blockedMsg = "[BLOCKED]"
+	}
+	return fmt.Sprintf("%s %s", t.description, blockedMsg)
 }
 
 func (t Task) Description() string {
-	return fmt.Sprintf("Project: %s, Tags: %s, Due: %s, Urgency: %.1f", t.project, t.tags, t.due, t.urgency)
+	var tagsMsg string
+	if len(t.tags) > 0 {
+		tagsMsg = fmt.Sprintf("Tags: %s, ", t.tags)
+	}
+	var projectMsg string
+	if t.project != "" {
+		projectMsg = fmt.Sprintf("Project: %s, ", t.project)
+	}
+	var dueMsg string
+	if t.due != "" {
+		dueMsg = fmt.Sprintf("Due: %s, ", t.due)
+	}
+	return fmt.Sprintf("%s%s%sUrgency: %.1f", projectMsg, tagsMsg, dueMsg, t.urgency)
 }

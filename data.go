@@ -2,10 +2,13 @@ package main
 
 import (
 	"bytes"
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
+	"slices"
+	"time"
 
 	"github.com/charmbracelet/bubbles/list"
 )
@@ -29,6 +32,9 @@ func (b *Board) initLists() {
 			// 	neverTasks = append(neverTasks, t)
 		}
 	}
+
+	sortTasks(todoTasks)
+	sortTasks(doingTasks)
 
 	// TODO: add a never column
 	b.cols = []column{
@@ -93,13 +99,17 @@ func getFromTW() []Task {
 			}
 		}
 		if due, ok := v["due"].(string); ok {
-			task.due = due
+			t, _ := time.Parse("20060102T150405Z", due)
+			task.due = fmt.Sprintf("%.1fd", time.Until(t).Hours()/24)
 		}
 		if project, ok := v["project"].(string); ok {
 			task.project = project
 		}
 		if id, ok := v["id"].(float64); ok {
 			task.id = int(id)
+		}
+		if _, ok := v["depends"].([]interface{}); ok {
+			task.blocked = true
 		}
 		if urgency, ok := v["urgency"].(float64); ok {
 			task.urgency = urgency
@@ -123,4 +133,10 @@ func convertToListItems(tasks []Task) []list.Item {
 		items[i] = task
 	}
 	return items
+}
+
+func sortTasks(tasks []Task) {
+	slices.SortFunc(tasks, func(a, b Task) int {
+		return cmp.Compare(a.urgency, b.urgency) * -1
+	})
 }
