@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"slices"
+	"strings"
 )
 
 type Task struct {
@@ -85,6 +87,50 @@ func (t *Task) Delete() {
 	}
 
 	t.status = never
+}
+
+func (t Task) ModifyTask(f *Form) Task {
+	cmdStr, err := ModifyCmd(t, f)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	cmd := exec.Command(cmdStr[0], cmdStr[1:]...)
+	err = cmd.Run()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	if f.description.Value() != "" && f.description.Value() != t.description {
+		t.description = f.description.Value()
+	}
+
+	if f.due.Value() != "" && f.due.Value() != t.due {
+		t.due = f.due.Value()
+	}
+
+	if f.project.Value() != t.project {
+		t.project = f.project.Value()
+	}
+
+	if f.label.Value() != "" {
+		formValues := strings.Split(f.label.Value(), " ")
+		addedLabels := []string{}
+		currLabels := t.tags
+		for _, label := range formValues {
+			idx := slices.Index(currLabels, label)
+			if idx == -1 {
+				addedLabels = append(addedLabels, label)
+			} else {
+				currLabels = slices.Delete(currLabels, idx, idx+1)
+			}
+		}
+		t.tags = addedLabels
+	}
+
+	return t
 }
 
 // implement the list.Item interface

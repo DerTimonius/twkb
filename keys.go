@@ -5,15 +5,16 @@ import "github.com/charmbracelet/bubbles/key"
 // ShortHelp returns keybindings to be shown in the mini help view. It's part
 // of the key.Map interface.
 func (k keyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.Help, k.Quit}
+	return []key.Binding{k.Tab, k.Submit, k.Back, k.Help, k.Quit}
 }
 
 // FullHelp returns keybindings for the expanded help view. It's part of the
 // key.Map interface.
 func (k keyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
-		{k.Up, k.Down, k.Left, k.Right}, // first column
-		{k.Help, k.Quit},                // second column
+		{k.Up, k.Down, k.Left, k.Right},   // first column
+		{k.Space, k.Enter, k.New, k.Edit}, // second column
+		{k.Help, k.Quit},                  // second column
 	}
 }
 
@@ -31,20 +32,21 @@ type keyMap struct {
 	Quit   key.Binding
 	Back   key.Binding
 	Tab    key.Binding
+	Submit key.Binding
 }
 
 var keys = keyMap{
 	New: key.NewBinding(
 		key.WithKeys("n", "a"),
-		key.WithHelp("a/n", "new"),
+		key.WithHelp("a/n", "add task"),
 	),
 	Edit: key.NewBinding(
 		key.WithKeys("e", "m"),
-		key.WithHelp("e/m", "edit/modify"),
+		key.WithHelp("e/m", "edit/modify focused task"),
 	),
 	Delete: key.NewBinding(
 		key.WithKeys("d"),
-		key.WithHelp("d", "delete"),
+		key.WithHelp("d", "delete task"),
 	),
 	Up: key.NewBinding(
 		key.WithKeys("up", "k"),
@@ -71,7 +73,7 @@ var keys = keyMap{
 		key.WithHelp("enter", "finish task"),
 	),
 	Help: key.NewBinding(
-		key.WithKeys("?"),
+		key.WithKeys("?", "b"),
 		key.WithHelp("?", "toggle help"),
 	),
 	Quit: key.NewBinding(
@@ -84,6 +86,10 @@ var keys = keyMap{
 	),
 	Tab: key.NewBinding(
 		key.WithKeys("tab"),
-		key.WithHelp("tab", "Tab"),
+		key.WithHelp("tab", "Goto next input"),
+	),
+	Submit: key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("enter", "submit task"),
 	),
 }

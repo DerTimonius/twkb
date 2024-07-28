@@ -1,6 +1,11 @@
 package main
 
 import (
+	"fmt"
+	"os"
+	"os/exec"
+	"strings"
+
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textarea"
@@ -10,13 +15,18 @@ import (
 )
 
 type Form struct {
+	help        help.Model
 	description textinput.Model
 	project     textinput.Model
 	label       textinput.Model
 	due         textinput.Model
-	help        help.Model
 	col         column
 	index       int
+}
+
+type EditForm struct {
+	relatedTask Task
+	form        *Form
 }
 
 func newDefaultForm() *Form {
@@ -40,7 +50,36 @@ func NewForm(description, project, label, due string) *Form {
 }
 
 func (f Form) CreateTask() Task {
-	return Task{status: todo, description: f.description.Value(), project: f.project.Value()}
+	cmdStr, err := AddCmd(f)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	cmd := exec.Command(cmdStr[0], cmdStr[1:]...)
+	err = cmd.Run()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	return Task{status: todo, description: f.description.Value(), project: f.project.Value(), tags: strings.Split(f.label.Value(), " ")}
+}
+
+func NewEditForm(t Task) EditForm {
+	form := Form{
+		help:        help.New(),
+		description: textinput.New(),
+		project:     textinput.New(),
+		label:       textinput.New(),
+		due:         textinput.New(),
+	}
+	form.description.SetValue(t.description)
+	form.project.SetValue(t.project)
+	form.label.SetValue(strings.Join(t.tags, " "))
+	form.due.SetValue(t.due)
+	form.description.Focus()
+	return EditForm{form: &form, relatedTask: t}
 }
 
 func (f Form) Init() tea.Cmd {
@@ -61,7 +100,6 @@ func (f Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, keys.Back):
 			return board.Update(nil)
 		case key.Matches(msg, keys.Enter):
-			// Return the completed form as a message.
 			return board.Update(f)
 		case key.Matches(msg, keys.Tab):
 			if f.description.Focused() {
@@ -77,6 +115,11 @@ func (f Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if f.label.Focused() {
 				f.label.Blur()
 				f.due.Focus()
+				return f, textarea.Blink
+			}
+			if f.due.Focused() {
+				f.due.Blur()
+				f.description.Focus()
 				return f, textarea.Blink
 			}
 		}

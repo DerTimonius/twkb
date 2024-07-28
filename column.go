@@ -1,7 +1,9 @@
 package main
 
 import (
-	"strings"
+	"fmt"
+	"os"
+	"os/exec"
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
@@ -41,7 +43,6 @@ func newColumn(status status) column {
 	return column{focus: focus, status: status, list: defaultList}
 }
 
-// Init does initial setup for the column.
 func (c column) Init() tea.Cmd {
 	return nil
 }
@@ -58,10 +59,10 @@ func (c column) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, keys.Edit):
 			if len(c.list.VisibleItems()) != 0 {
 				task := c.list.SelectedItem().(Task)
-				f := NewForm(task.description, task.project, strings.Join(task.tags, " "), task.due)
-				f.index = c.list.Index()
-				f.col = c
-				return f.Update(nil)
+				f := NewEditForm(task)
+				f.form.index = c.list.Index()
+				f.form.col = c
+				return f.form.Update(nil)
 			}
 		case key.Matches(msg, keys.New):
 			f := newDefaultForm()
@@ -85,13 +86,33 @@ func (c column) View() string {
 }
 
 func (c *column) DeleteCurrent() tea.Cmd {
+	var task Task
+	var ok bool
+
+	if task, ok = c.list.SelectedItem().(Task); !ok {
+		return nil
+	}
+
 	if len(c.list.VisibleItems()) > 0 {
 		c.list.RemoveItem(c.list.Index())
 	}
 
-	var cmd tea.Cmd
-	c.list, cmd = c.list.Update(nil)
-	return cmd
+	cmdStr, err := DeleteCmd(&task)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	cmd := exec.Command(cmdStr[0], cmdStr[1:]...)
+	err = cmd.Run()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	var cm tea.Cmd
+	c.list, cm = c.list.Update(nil)
+	return cm
 }
 
 func (c *column) Set(i int, t Task) tea.Cmd {
@@ -158,7 +179,7 @@ func (c *column) MoveToDone() tea.Cmd {
 	}
 
 	c.list.RemoveItem(c.list.Index())
-	task.status = done
+	task.Finish()
 
 	// refresh list
 	var cmd tea.Cmd

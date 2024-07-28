@@ -40,7 +40,12 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.loaded = true
 		return m, tea.Batch(cmds...)
 	case Form:
-		return m, m.cols[m.focused].Set(msg.index, msg.CreateTask())
+		return m, m.cols[todo].Set(msg.index, msg.CreateTask())
+	case EditForm:
+		return m, m.cols[m.focused].Set(
+			msg.form.index,
+			msg.relatedTask.ModifyTask(msg.form),
+		)
 	case moveMsg:
 		return m, m.cols[msg.Task.status].Set(APPEND, msg.Task)
 	case tea.KeyMsg:

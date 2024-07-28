@@ -6,6 +6,14 @@ import (
 	"testing"
 )
 
+type modifyTest struct {
+	expectedErr error
+	name        string
+	expected    string
+	form        Form
+	task        Task
+}
+
 type formTest struct {
 	expectedErr error
 	name        string
@@ -89,7 +97,7 @@ func TestAddCmd(t *testing.T) {
 	for _, tt := range validTests {
 		t.Run(tt.name, func(t *testing.T) {
 			result, _ := AddCmd(tt.form)
-			if result != tt.expected {
+			if strings.Join(result, " ") != tt.expected {
 				t.Errorf("StartCmd(%v) = %q, want %q", tt.name, result, tt.expected)
 			}
 		})
@@ -205,7 +213,7 @@ func TestDoneCmd(t *testing.T) {
 		{
 			nil,
 			"Basic task",
-			"task 42 done",
+			"task rc.confirmation=no 42 done",
 			Task{id: 42, description: "a basic task"},
 		},
 	}
@@ -272,6 +280,112 @@ func TestDeleteCmd(t *testing.T) {
 	for _, tt := range errorTests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := DeleteCmd(&tt.task)
+			if err == nil {
+				t.Fatal("Expected an error, but got nil")
+			}
+			if err.Error() != tt.expectedErr.Error() {
+				t.Errorf("Expected error %v, got %v", tt.expectedErr, err)
+			}
+		})
+	}
+}
+
+func TestModifyCmd(t *testing.T) {
+	testForm1 := newDefaultForm()
+	testForm1.description.SetValue("test the modify command")
+	testForm1.project.SetValue("task-gui")
+
+	testForm2 := newDefaultForm()
+	testForm2.project.SetValue("twkb")
+
+	testForm3 := newDefaultForm()
+	testForm3.label.SetValue("go tui")
+
+	testForm4 := newDefaultForm()
+	testForm4.description.SetValue("test the modify command")
+	testForm4.project.SetValue("twkb")
+	testForm4.label.SetValue("go tui")
+	testForm4.due.SetValue("7d")
+
+	testForm5 := newDefaultForm()
+	testForm5.description.SetValue("test the modify command")
+	testForm5.label.SetValue("go tui")
+	testForm5.project.SetValue("task-gui")
+
+	testForm6 := newDefaultForm()
+	testForm6.due.SetValue("eow")
+	testForm6.project.SetValue("task-gui")
+
+	baseTask := Task{id: 42, description: "basic task", project: "task-gui", tags: []string{"rust", "cli"}, due: "eod"}
+
+	validTests := []modifyTest{
+		{
+			nil,
+			"Modify only the description",
+			"task rc.confirmation=no 42 modify test the modify command",
+			*testForm1,
+			baseTask,
+		},
+		{
+			nil,
+			"Modify only the project",
+			"task rc.confirmation=no 42 modify project:twkb",
+			*testForm2,
+			baseTask,
+		},
+		{
+			nil,
+			"Remove the project and modify the labels",
+			"task rc.confirmation=no 42 modify project: +go +tui -rust -cli",
+			*testForm3,
+			baseTask,
+		},
+		{
+			nil,
+			"Modify every aspect of the task",
+			"task rc.confirmation=no 42 modify test the modify command project:twkb due:7d +go +tui -rust -cli",
+			*testForm4,
+			baseTask,
+		},
+		{
+			nil,
+			"Modify the description and the labels",
+			"task rc.confirmation=no 42 modify test the modify command +go +tui -rust -cli",
+			*testForm5,
+			baseTask,
+		},
+		{
+			nil,
+			"Modify only the due date",
+			"task rc.confirmation=no 42 modify due:eow",
+			*testForm6,
+			baseTask,
+		},
+	}
+
+	for _, tt := range validTests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, _ := ModifyCmd(tt.task, &tt.form)
+			if strings.Join(result, " ") != tt.expected {
+				t.Errorf("StartCmd(%v) = %q, want %q", tt.name, result, tt.expected)
+			}
+		})
+	}
+
+	errorTestForm := newDefaultForm()
+	errorTests := []modifyTest{
+		{
+			errors.New("cannot modify a task with ID 0"),
+			"Form without description",
+			"",
+			*errorTestForm,
+			Task{id: 0},
+		},
+	}
+
+	for _, tt := range errorTests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := ModifyCmd(tt.task, &tt.form)
 			if err == nil {
 				t.Fatal("Expected an error, but got nil")
 			}
