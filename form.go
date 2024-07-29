@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -74,13 +77,25 @@ func (f Form) CreateTask() Task {
 	}
 
 	cmd := exec.Command(cmdStr[0], cmdStr[1:]...)
+	var out bytes.Buffer
+	cmd.Stdout = &out
 	err = cmd.Run()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	return Task{status: todo, description: f.description.Value(), project: f.project.Value(), tags: strings.Split(f.label.Value(), " ")}
+	// get the id from the output of task
+	output := out.String()
+	re := regexp.MustCompile(`\d+`)
+	matchId := re.FindString(output)
+	id, e := strconv.Atoi(matchId)
+	if e != nil {
+		fmt.Println(e)
+		os.Exit(1)
+	}
+
+	return Task{id: id, status: todo, description: f.description.Value(), project: f.project.Value(), tags: strings.Split(f.label.Value(), " ")}
 }
 
 func NewEditForm(t Task) *Form {
