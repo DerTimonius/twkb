@@ -70,7 +70,11 @@ func (c column) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			f.col = c
 			return f.Update(nil)
 		case key.Matches(msg, keys.Delete):
-			return c, c.DeleteCurrent()
+			task := c.list.SelectedItem().(Task)
+			conf := NewConfirmation(fmt.Sprintf("Are you sure you want to delete the task %s?", task.description), c.DeleteCurrent)
+			conf.index = APPEND
+			conf.column = c
+			return conf.Update(nil)
 		case key.Matches(msg, keys.Space):
 			return c, c.MoveToNext()
 		case key.Matches(msg, keys.Enter):

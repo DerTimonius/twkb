@@ -34,6 +34,7 @@ type keyMap struct {
 	Tab    key.Binding
 	Submit key.Binding
 	Filter key.Binding
+	Yes    key.Binding
 }
 
 var keys = keyMap{
@@ -96,5 +97,9 @@ var keys = keyMap{
 	Filter: key.NewBinding(
 		key.WithKeys("/"),
 		key.WithHelp("/", "filter tasks"),
+	),
+	Yes: key.NewBinding(
+		key.WithKeys("y"),
+		key.WithHelp("y", "Yes"),
 	),
 }
