@@ -7,13 +7,15 @@ import (
 	"strings"
 )
 
-func AddCmd(f Form) ([]string, error) {
+func AddCmd(f TaskForm) ([]string, error) {
 	if f.description.Value() == "" {
 		return []string{}, errors.New("cannot create a task without a description")
 	}
 	var due string
 	var project string
 	var tags string
+	var recur string
+	var until string
 
 	if f.due.Value() != "" {
 		due = fmt.Sprintf("due:%s ", f.due.Value())
@@ -29,10 +31,23 @@ func AddCmd(f Form) ([]string, error) {
 		for _, l := range labels {
 			labelStrings = append(labelStrings, fmt.Sprintf("+%s", l))
 		}
+		labelStrings = append(labelStrings, "")
 		tags = strings.Join(labelStrings, " ")
 	}
 
-	str := fmt.Sprintf("task add %s %s%s%s", f.description.Value(), project, due, tags)
+	if f.recur.Value() != "" {
+		recur = fmt.Sprintf("recur:%s ", f.recur.Value())
+	}
+
+	if f.until.Value() != "" {
+		until = fmt.Sprintf("until:%s ", f.until.Value())
+	}
+
+	if recur != "" && due == "" {
+		return []string{}, errors.New("cannot create a recurring task without a due date")
+	}
+
+	str := fmt.Sprintf("task add %s %s%s%s%s%s", f.description.Value(), project, due, tags, recur, until)
 	return strings.Split(strings.TrimSuffix(str, " "), " "), nil
 }
 
@@ -64,7 +79,7 @@ func DeleteCmd(t *Task) ([]string, error) {
 	return []string{"task", "rc.confirmation=no", fmt.Sprint(t.id), "delete"}, nil
 }
 
-func ModifyCmd(t Task, f *Form) ([]string, error) {
+func ModifyCmd(t Task, f *TaskForm) ([]string, error) {
 	if t.id == 0 {
 		return []string{}, errors.New("cannot modify a task with ID 0")
 	}

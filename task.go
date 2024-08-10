@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"slices"
@@ -20,6 +21,7 @@ type Task struct {
 	id          int
 	urgency     float64
 	blocked     bool
+	recurring   bool
 }
 
 func (t *Task) StartStop() {
@@ -37,8 +39,7 @@ func (t *Task) StartStop() {
 		cmd := exec.Command(cmdStr[0], cmdStr[1:]...)
 		err = cmd.Run()
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			log.Fatal(err)
 		}
 
 		t.status = todo
@@ -52,8 +53,7 @@ func (t *Task) StartStop() {
 		cmd := exec.Command(cmdStr[0], cmdStr[1:]...)
 		err = cmd.Run()
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			log.Fatal(err)
 		}
 
 		t.status = inProgress
@@ -70,8 +70,7 @@ func (t *Task) Finish() {
 	cmd := exec.Command(cmdStr[0], cmdStr[1:]...)
 	err = cmd.Run()
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 
 	t.status = done
@@ -87,14 +86,13 @@ func (t *Task) Delete() {
 	cmd := exec.Command(cmdStr[0], cmdStr[1:]...)
 	err = cmd.Run()
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 
 	t.status = never
 }
 
-func (t Task) ModifyTask(f *Form) Task {
+func (t Task) ModifyTask(f *TaskForm) Task {
 	cmdStr, err := ModifyCmd(t, f)
 	if err != nil {
 		fmt.Println(err)
@@ -104,8 +102,7 @@ func (t Task) ModifyTask(f *Form) Task {
 	cmd := exec.Command(cmdStr[0], cmdStr[1:]...)
 	err = cmd.Run()
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 
 	if f.description.Value() != "" && f.description.Value() != t.description {
@@ -144,11 +141,14 @@ func (t Task) FilterValue() string {
 }
 
 func (t Task) Title() string {
-	var blockedMsg string
+	var addMsg string
 	if t.blocked {
-		blockedMsg = "[BLOCKED]"
+		addMsg = "[BLOCKED]"
 	}
-	return fmt.Sprintf("%s %s", t.description, blockedMsg)
+	if t.recurring {
+		addMsg = "[RECURRING]"
+	}
+	return fmt.Sprintf("%s %s", t.description, addMsg)
 }
 
 func (t Task) Description() string {

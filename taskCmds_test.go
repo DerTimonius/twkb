@@ -10,15 +10,15 @@ type modifyTest struct {
 	expectedErr error
 	name        string
 	expected    string
-	form        Form
 	task        Task
+	form        TaskForm
 }
 
 type formTest struct {
 	expectedErr error
 	name        string
 	expected    string
-	form        Form
+	form        TaskForm
 }
 
 type taskTest struct {
@@ -54,6 +54,19 @@ func TestAddCmd(t *testing.T) {
 	testForm6 := newDefaultForm()
 	testForm6.description.SetValue("test the add command")
 	testForm6.due.SetValue("eod")
+
+	testForm7 := newDefaultForm()
+	testForm7.description.SetValue("test the add command")
+	testForm7.due.SetValue("eow")
+	testForm7.recur.SetValue("monthly")
+	testForm7.until.SetValue("now+1yr")
+
+	testForm8 := newDefaultForm()
+	testForm8.description.SetValue("test the add command")
+	testForm8.label.SetValue("go tui")
+	testForm8.due.SetValue("eow")
+	testForm8.recur.SetValue("monthly")
+	testForm8.until.SetValue("now+1yr")
 
 	validTests := []formTest{
 		{
@@ -92,6 +105,18 @@ func TestAddCmd(t *testing.T) {
 			"task add test the add command due:eod",
 			*testForm6,
 		},
+		{
+			nil,
+			"Task creation with recur and until",
+			"task add test the add command due:eow recur:monthly until:now+1yr",
+			*testForm7,
+		},
+		{
+			nil,
+			"Task creation with recur and until with tags",
+			"task add test the add command due:eow +go +tui recur:monthly until:now+1yr",
+			*testForm8,
+		},
 	}
 
 	for _, tt := range validTests {
@@ -104,12 +129,23 @@ func TestAddCmd(t *testing.T) {
 	}
 
 	errorTestForm := newDefaultForm()
+
+	errorTestForm2 := newDefaultForm()
+	errorTestForm2.description.SetValue("invalid test")
+	errorTestForm2.recur.SetValue("monthly")
+
 	errorTests := []formTest{
 		{
 			errors.New("cannot create a task without a description"),
 			"Form without description",
 			"",
 			*errorTestForm,
+		},
+		{
+			errors.New("cannot create a recurring task without a due date"),
+			"Recurring task without a due date",
+			"",
+			*errorTestForm2,
 		},
 	}
 
@@ -323,43 +359,43 @@ func TestModifyCmd(t *testing.T) {
 			nil,
 			"Modify only the description",
 			"task rc.confirmation=no 42 modify test the modify command",
-			*testForm1,
 			baseTask,
+			*testForm1,
 		},
 		{
 			nil,
 			"Modify only the project",
 			"task rc.confirmation=no 42 modify project:twkb",
-			*testForm2,
 			baseTask,
+			*testForm2,
 		},
 		{
 			nil,
 			"Remove the project and modify the labels",
 			"task rc.confirmation=no 42 modify project: +go +tui -rust -cli",
-			*testForm3,
 			baseTask,
+			*testForm3,
 		},
 		{
 			nil,
 			"Modify every aspect of the task",
 			"task rc.confirmation=no 42 modify test the modify command project:twkb due:7d +go +tui -rust -cli",
-			*testForm4,
 			baseTask,
+			*testForm4,
 		},
 		{
 			nil,
 			"Modify the description and the labels",
 			"task rc.confirmation=no 42 modify test the modify command +go +tui -rust -cli",
-			*testForm5,
 			baseTask,
+			*testForm5,
 		},
 		{
 			nil,
 			"Modify only the due date",
 			"task rc.confirmation=no 42 modify due:eow",
-			*testForm6,
 			baseTask,
+			*testForm6,
 		},
 	}
 
@@ -378,8 +414,8 @@ func TestModifyCmd(t *testing.T) {
 			errors.New("cannot modify a task with ID 0"),
 			"Form without description",
 			"",
-			*errorTestForm,
 			Task{id: 0},
+			*errorTestForm,
 		},
 	}
 

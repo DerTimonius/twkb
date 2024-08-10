@@ -39,7 +39,7 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.loaded = true
 		return m, tea.Batch(cmds...)
-	case Form:
+	case TaskForm:
 		if msg.isEdit {
 			return m, m.cols[m.focused].Set(
 				msg.index,

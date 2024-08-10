@@ -21,7 +21,7 @@ var (
 	formStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
 			Padding(1).
-			Width(50)
+			Width(65)
 
 	titleStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#96CDFB")).
@@ -37,39 +37,45 @@ var (
 			MarginBottom(1)
 )
 
-type Form struct {
+type TaskForm struct {
 	help        help.Model
 	description textinput.Model
 	project     textinput.Model
 	label       textinput.Model
 	due         textinput.Model
+	recur       textinput.Model
+	until       textinput.Model
 	col         column
 	relatedTask Task
 	index       int
 	isEdit      bool
 }
 
-func newDefaultForm() *Form {
-	return NewForm("task name", "project (no spaces)", "labels (space separted list)", "due (e.g. eod, 2d)")
+func newDefaultForm() *TaskForm {
+	return NewForm("task name", "project (no spaces)", "labels (space separted list)", "due (e.g. eod, 2d)", "recur (e.g. monthly)", "until (e.g. now+1yr)")
 }
 
-func NewForm(description, project, label, due string) *Form {
-	form := Form{
+func NewForm(description, project, label, due, recur, until string) *TaskForm {
+	form := TaskForm{
 		help:        help.New(),
 		description: textinput.New(),
 		project:     textinput.New(),
 		label:       textinput.New(),
 		due:         textinput.New(),
+		recur:       textinput.New(),
+		until:       textinput.New(),
 	}
 	form.description.Placeholder = description
 	form.project.Placeholder = project
 	form.label.Placeholder = label
 	form.due.Placeholder = due
+	form.recur.Placeholder = recur
+	form.until.Placeholder = until
 	form.description.Focus()
 	return &form
 }
 
-func (f Form) CreateTask() Task {
+func (f TaskForm) CreateTask() Task {
 	cmdStr, err := AddCmd(f)
 	if err != nil {
 		fmt.Println(err)
@@ -98,8 +104,8 @@ func (f Form) CreateTask() Task {
 	return Task{id: id, status: todo, description: f.description.Value(), project: f.project.Value(), tags: strings.Split(f.label.Value(), " ")}
 }
 
-func NewEditForm(t Task) *Form {
-	form := Form{
+func NewEditForm(t Task) *TaskForm {
+	form := TaskForm{
 		help:        help.New(),
 		description: textinput.New(),
 		project:     textinput.New(),
@@ -116,11 +122,11 @@ func NewEditForm(t Task) *Form {
 	return &form
 }
 
-func (f Form) Init() tea.Cmd {
+func (f TaskForm) Init() tea.Cmd {
 	return nil
 }
 
-func (f Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (f TaskForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case column:
@@ -153,6 +159,16 @@ func (f Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			if f.due.Focused() {
 				f.due.Blur()
+				f.recur.Focus()
+				return f, textarea.Blink
+			}
+			if f.recur.Focused() {
+				f.recur.Blur()
+				f.until.Focus()
+				return f, textarea.Blink
+			}
+			if f.until.Focused() {
+				f.until.Blur()
 				f.description.Focus()
 				return f, textarea.Blink
 			}
@@ -170,11 +186,19 @@ func (f Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		f.label, cmd = f.label.Update(msg)
 		return f, cmd
 	}
+	if f.recur.Focused() {
+		f.recur, cmd = f.recur.Update(msg)
+		return f, cmd
+	}
+	if f.until.Focused() {
+		f.until, cmd = f.until.Update(msg)
+		return f, cmd
+	}
 	f.due, cmd = f.due.Update(msg)
 	return f, cmd
 }
 
-func (f Form) View() string {
+func (f TaskForm) View() string {
 	title := titleStyle.Render("Create or update a Task")
 
 	inputs := lipgloss.JoinVertical(
@@ -185,6 +209,13 @@ func (f Form) View() string {
 		fieldStyle.Render(inputStyle.Render("Due:         "+f.due.View())),
 	)
 
+	if !f.isEdit {
+		inputs = lipgloss.JoinVertical(lipgloss.Left, inputs,
+			fieldStyle.Render(inputStyle.Render("Recur:       "+f.recur.View())),
+			fieldStyle.Render(inputStyle.Render("Until:       "+f.until.View())),
+		)
+	}
+
 	help := f.help.View(keys)
 
 	return formStyle.Render(
@@ -192,7 +223,7 @@ func (f Form) View() string {
 			lipgloss.Left,
 			title,
 			inputs,
-			strings.Repeat("─", 48), // Separator line
+			strings.Repeat("─", 63), // Separator line
 			help,
 		),
 	)

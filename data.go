@@ -75,6 +75,9 @@ func getFromTW() []Task {
 
 	for _, v := range result {
 		task := Task{}
+		if _, ok := v["mask"].(string); ok {
+			continue
+		}
 		if start, ok := v["start"].(string); ok {
 			task.start = start
 		}
@@ -104,6 +107,11 @@ func getFromTW() []Task {
 		}
 		if project, ok := v["project"].(string); ok {
 			task.project = project
+		}
+		if rtype, ok := v["rtype"].(string); ok {
+			if rtype == "periodic" {
+				task.recurring = true
+			}
 		}
 		if id, ok := v["id"].(float64); ok {
 			task.id = int(id)
