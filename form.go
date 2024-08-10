@@ -101,7 +101,9 @@ func (f TaskForm) CreateTask() Task {
 		os.Exit(1)
 	}
 
-	return Task{id: id, status: todo, description: f.description.Value(), project: f.project.Value(), tags: strings.Split(f.label.Value(), " ")}
+	task := Task{id: id, status: todo, description: f.description.Value(), project: f.project.Value(), tags: strings.Split(f.label.Value(), " ")}
+	task.UpdateUrgency()
+	return task
 }
 
 func NewEditForm(t Task) *TaskForm {

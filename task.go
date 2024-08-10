@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
 	"slices"
+	"strconv"
 	"strings"
 )
 
@@ -58,6 +60,7 @@ func (t *Task) StartStop() {
 
 		t.status = inProgress
 	}
+	t.UpdateUrgency()
 }
 
 func (t *Task) Finish() {
@@ -165,4 +168,45 @@ func (t Task) Description() string {
 		dueMsg = fmt.Sprintf("Due: %s, ", t.due)
 	}
 	return fmt.Sprintf("%s%s%sUrgency: %.1f", projectMsg, tagsMsg, dueMsg, t.urgency)
+}
+
+func (t *Task) UpdateUrgency() {
+	var taskId string
+	if t.uuid != "" {
+		taskId = t.uuid
+	} else {
+		taskId = string(t.id)
+	}
+	cmd := exec.Command("task", taskId, "_urgency")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err := cmd.Run()
+	if err != nil {
+		t.urgency = 0.0
+		return
+	}
+
+	urgency, e := extractUrgency(out.String())
+	// it's safe to ignore these errors, just set the urgency to 0.0
+	if e != nil {
+		t.urgency = 0.0
+		return
+	}
+	t.urgency = urgency
+}
+
+func extractUrgency(input string) (float64, error) {
+	parts := strings.Fields(input)
+
+	if len(parts) < 4 {
+		return 0, fmt.Errorf("input string does not have the expected format")
+	}
+
+	urgencyStr := parts[len(parts)-1]
+	urgency, err := strconv.ParseFloat(urgencyStr, 64)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse urgency value: %v, string: %s", err, urgencyStr)
+	}
+
+	return urgency, nil
 }
