@@ -18,23 +18,31 @@ func (k keyMap) FullHelp() [][]key.Binding {
 	}
 }
 
+func (k keyMap) BlockHelp() []key.Binding {
+	return []key.Binding{k.Up, k.Down, k.BlockSelect, k.BlockSubmit, k.Back}
+}
+
 type keyMap struct {
-	New    key.Binding
-	Edit   key.Binding
-	Delete key.Binding
-	Up     key.Binding
-	Down   key.Binding
-	Right  key.Binding
-	Left   key.Binding
-	Enter  key.Binding
-	Space  key.Binding
-	Help   key.Binding
-	Quit   key.Binding
-	Back   key.Binding
-	Tab    key.Binding
-	Submit key.Binding
-	Filter key.Binding
-	Yes    key.Binding
+	New         key.Binding
+	Edit        key.Binding
+	Delete      key.Binding
+	Up          key.Binding
+	Down        key.Binding
+	Right       key.Binding
+	Left        key.Binding
+	Enter       key.Binding
+	Space       key.Binding
+	Help        key.Binding
+	Quit        key.Binding
+	Back        key.Binding
+	Tab         key.Binding
+	Submit      key.Binding
+	Filter      key.Binding
+	Yes         key.Binding
+	No          key.Binding
+	Block       key.Binding
+	BlockSelect key.Binding
+	BlockSubmit key.Binding
 }
 
 var keys = keyMap{
@@ -98,8 +106,24 @@ var keys = keyMap{
 		key.WithKeys("/"),
 		key.WithHelp("/", "filter tasks"),
 	),
+	No: key.NewBinding(
+		key.WithKeys("n"),
+		key.WithHelp("n", "No"),
+	),
 	Yes: key.NewBinding(
 		key.WithKeys("y"),
 		key.WithHelp("y", "Yes"),
+	),
+	Block: key.NewBinding(
+		key.WithKeys("b"),
+		key.WithHelp("b", "block tasks"),
+	),
+	BlockSelect: key.NewBinding(
+		key.WithKeys("space"),
+		key.WithHelp("space", "select task"),
+	),
+	BlockSubmit: key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("enter", "submit"),
 	),
 }

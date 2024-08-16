@@ -75,6 +75,13 @@ func (c column) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			conf.index = APPEND
 			conf.column = c
 			return conf.Update(nil)
+		case key.Matches(msg, keys.Block):
+			task := c.list.SelectedItem().(Task)
+			todoTasks := board.cols[todo].list.Items()
+			b := NewBlockForm(task, todoTasks)
+			b.index = APPEND
+			b.column = c
+			return b.Update(nil)
 		case key.Matches(msg, keys.Space):
 			return c, c.MoveToNext()
 		case key.Matches(msg, keys.Enter):
@@ -128,6 +135,7 @@ func (c *column) Set(i int, t Task) tea.Cmd {
 
 func (c *column) setSize(width, height int) {
 	c.width = width / margin
+	c.height = height - (margin * 2)
 }
 
 func (c *column) getStyle() lipgloss.Style {

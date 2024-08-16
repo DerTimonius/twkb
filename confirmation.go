@@ -36,8 +36,7 @@ func (c Confirmation) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case key.Matches(msg, keys.Yes):
 			return board.Update(c)
-			// "n" is used for both 'no' and 'new'
-		case key.Matches(msg, keys.New), key.Matches(msg, keys.Back):
+		case key.Matches(msg, keys.No), key.Matches(msg, keys.Back):
 			return board.Update(nil)
 		case key.Matches(msg, keys.Quit):
 			return c, tea.Quit

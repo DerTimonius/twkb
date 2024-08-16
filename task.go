@@ -175,7 +175,7 @@ func (t *Task) UpdateUrgency() {
 	if t.uuid != "" {
 		taskId = t.uuid
 	} else {
-		taskId = string(t.id)
+		taskId = fmt.Sprint(t.id)
 	}
 	cmd := exec.Command("task", taskId, "_urgency")
 	var out bytes.Buffer
@@ -193,6 +193,30 @@ func (t *Task) UpdateUrgency() {
 		return
 	}
 	t.urgency = urgency
+}
+
+func (t *Task) BlockTasks(tasks *[]Task) {
+	// don't block other tasks when it is already finished
+	if t.status == done {
+		return
+	}
+
+	cmdStr, err := BlockCmd(t, tasks)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	cmd := exec.Command(cmdStr[0], cmdStr[1:]...)
+	err = cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// TODO: update urgency of all tasks
+	for _, task := range *tasks {
+		task.blocked = true
+	}
 }
 
 func extractUrgency(input string) (float64, error) {

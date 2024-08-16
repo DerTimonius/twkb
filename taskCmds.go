@@ -123,7 +123,14 @@ func ModifyCmd(t Task, f *TaskForm) ([]string, error) {
 		}
 	}
 
-	str := fmt.Sprintf("task rc.confirmation=no %d modify %s %s%s%s", t.id, changedDescription, changedProject, changedDue, strings.Join(changedLabels, " "))
+	str := fmt.Sprintf(
+		"task rc.confirmation=no %d modify %s %s%s%s",
+		t.id,
+		changedDescription,
+		changedProject,
+		changedDue,
+		strings.Join(changedLabels, " "),
+	)
 	cmdArgs := []string{}
 	// remove the nil values if there are any present
 	for _, arg := range strings.Split(strings.TrimSuffix(str, " "), " ") {
@@ -133,4 +140,33 @@ func ModifyCmd(t Task, f *TaskForm) ([]string, error) {
 		cmdArgs = append(cmdArgs, arg)
 	}
 	return cmdArgs, nil
+}
+
+func BlockCmd(t *Task, blocked *[]Task) ([]string, error) {
+	if len(*blocked) == 0 {
+		return []string{}, errors.New("need to select at least 1 task")
+	}
+
+	if t.id == 0 {
+		return []string{}, errors.New("blocking task cannot have ID 0")
+	}
+
+	cmd := []string{"task"}
+
+	var taskIds []string
+	for _, task := range *blocked {
+		if task.id == 0 {
+			return []string{}, errors.New("cannot block a task with ID 0")
+		}
+
+		if task.id == t.id {
+			return []string{}, errors.New("cannot block a task with same ID")
+		}
+
+		taskIds = append(taskIds, fmt.Sprint(task.id))
+	}
+	cmd = append(cmd, strings.Join(taskIds, ","))
+	cmd = append(cmd, "modify")
+	cmd = append(cmd, fmt.Sprintf("depends:%d", t.id))
+	return cmd, nil
 }

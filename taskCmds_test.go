@@ -28,6 +28,14 @@ type taskTest struct {
 	task        Task
 }
 
+type blockTest struct {
+	expectedErr error
+	name        string
+	expected    string
+	blocked     []Task
+	task        Task
+}
+
 func TestAddCmd(t *testing.T) {
 	testForm1 := newDefaultForm()
 	testForm1.description.SetValue("test the add command")
@@ -422,6 +430,70 @@ func TestModifyCmd(t *testing.T) {
 	for _, tt := range errorTests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := ModifyCmd(tt.task, &tt.form)
+			if err == nil {
+				t.Fatal("Expected an error, but got nil")
+			}
+			if err.Error() != tt.expectedErr.Error() {
+				t.Errorf("Expected error %v, got %v", tt.expectedErr, err)
+			}
+		})
+	}
+}
+
+func TestBlockCmd(t *testing.T) {
+	validTests := []blockTest{
+		{
+			nil,
+			"Block single task",
+			"task 23 modify depends:42",
+			[]Task{{id: 23, description: "a blocked task"}},
+			Task{id: 42, description: "a basic task"},
+		},
+		{
+			nil,
+			"Block multiple tasks",
+			"task 23,4,8 modify depends:42",
+			[]Task{{id: 23, description: "a blocked task"}, {id: 4, description: "a blocked task"}, {id: 8, description: "a blocked task"}},
+			Task{id: 42, description: "a basic task"},
+		},
+	}
+
+	for _, tt := range validTests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, _ := BlockCmd(&tt.task, &tt.blocked)
+			if strings.Join(result, " ") != tt.expected {
+				t.Errorf("StartCmd(%v) = %q, want %q", tt.task, result, tt.expected)
+			}
+		})
+	}
+
+	errorTests := []blockTest{
+		{
+			errors.New("blocking task cannot have ID 0"),
+			"Blocking task has ID 0",
+			"",
+			[]Task{{id: 23, description: "a blocked task"}, {id: 4, description: "a blocked task"}, {id: 8, description: "a blocked task"}},
+			Task{id: 0, description: "an invalid task"},
+		},
+		{
+			errors.New("cannot block a task with ID 0"),
+			"Blocked task has ID 0",
+			"",
+			[]Task{{id: 23, description: "a blocked task"}, {id: 0, description: "an invalid task"}, {id: 8, description: "a blocked task"}},
+			Task{id: 42, description: "a basic task"},
+		},
+		{
+			errors.New("cannot block a task with same ID"),
+			"Blocked task has same ID as blocking task",
+			"",
+			[]Task{{id: 23, description: "a blocked task"}, {id: 42, description: "an invalid task"}, {id: 8, description: "a blocked task"}},
+			Task{id: 42, description: "a basic task"},
+		},
+	}
+
+	for _, tt := range errorTests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := BlockCmd(&tt.task, &tt.blocked)
 			if err == nil {
 				t.Fatal("Expected an error, but got nil")
 			}
