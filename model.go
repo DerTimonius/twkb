@@ -52,9 +52,8 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case Confirmation:
 		return m, msg.confirm()
 	case Block:
-		tasks := msg.selectedTasks
+		tasks := msg.GetSelectedTasks()
 		msg.blocking.BlockTasks(&tasks)
-		return m, m.cols[todo].Set(msg.index, msg.blocking)
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keys.Quit):

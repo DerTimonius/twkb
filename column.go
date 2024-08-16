@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/DerTimonius/twkb/styles"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -38,8 +39,12 @@ func newColumn(status status) column {
 	if status == todo {
 		focus = true
 	}
-	defaultList := list.New([]list.Item{}, list.NewDefaultDelegate(), 0, 0)
+	defaultDelegate := list.NewDefaultDelegate()
+	defaultDelegate.Styles.SelectedTitle = styles.DefaultSelectedTitleStyle
+	defaultDelegate.Styles.SelectedDesc = styles.DefaultSelectedDesc
+	defaultList := list.New([]list.Item{}, defaultDelegate, 0, 0)
 	defaultList.SetShowHelp(false)
+	defaultList.Styles.Title = styles.DefaultListTitleStyle
 	return column{focus: focus, status: status, list: defaultList}
 }
 
@@ -139,16 +144,15 @@ func (c *column) setSize(width, height int) {
 }
 
 func (c *column) getStyle() lipgloss.Style {
+	baseColumnStyle := styles.ColumnBaseStyle
 	if c.Focused() {
-		return lipgloss.NewStyle().
-			Padding(1, 2).
+		return baseColumnStyle.
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color("62")).
+			BorderForeground(lipgloss.Color(styles.Maroon)).
 			Height(c.height).
 			Width(c.width)
 	}
-	return lipgloss.NewStyle().
-		Padding(1, 2).
+	return baseColumnStyle.
 		Border(lipgloss.HiddenBorder()).
 		Height(c.height).
 		Width(c.width)

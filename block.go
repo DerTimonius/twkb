@@ -5,23 +5,22 @@ import (
 	"io"
 	"strings"
 
+	"github.com/DerTimonius/twkb/styles"
+	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
-type itemDelegate struct{}
+type blockItemDelegate struct {
+	selectedTasks map[string]bool
+}
 
-var (
-	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
-	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("42"))
-)
-
-func (d itemDelegate) Height() int                             { return 1 }
-func (d itemDelegate) Spacing() int                            { return 0 }
-func (d itemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
-func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
+func (d blockItemDelegate) Height() int                             { return 1 }
+func (d blockItemDelegate) Spacing() int                            { return 0 }
+func (d blockItemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
+func (d blockItemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
 	i, ok := listItem.(Task)
 	if !ok {
 		return
@@ -29,10 +28,19 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 
 	str := fmt.Sprintf("%d. %s", index+1, i.description)
 
-	fn := itemStyle.Render
+	fn := styles.ItemStyle.Render
 	if index == m.Index() {
 		fn = func(s ...string) string {
-			return selectedItemStyle.Render("> " + strings.Join(s, " "))
+			return styles.BlockSelectedItemStyle.Render("> " + strings.Join(s, " "))
+		}
+	}
+
+	if d.selectedTasks[i.uuid] {
+		fn = func(s ...string) string {
+			return styles.BlockSelectedItemStyle.
+				Copy().
+				Foreground(lipgloss.Color(styles.Green)).
+				Render("* " + strings.Join(s, " "))
 		}
 	}
 
@@ -40,8 +48,10 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 }
 
 type Block struct {
-	todoTasks     list.Model
-	selectedTasks []Task
+	todoTaskList  list.Model
+	selectedTasks map[string]bool
+	help          help.Model
+	todoTasks     []Task
 	column        column
 	blocking      Task
 	index         int
@@ -53,6 +63,7 @@ func (b Block) Init() tea.Cmd {
 
 func NewBlockForm(t Task, todos []list.Item) *Block {
 	var filteredTodos []list.Item
+	var filteredTasks []Task
 
 	for _, td := range todos {
 		if td.(Task).uuid == t.uuid || td.(Task).blocked || td.(Task).recurring {
@@ -60,22 +71,29 @@ func NewBlockForm(t Task, todos []list.Item) *Block {
 		}
 
 		filteredTodos = append(filteredTodos, td)
+		filteredTasks = append(filteredTasks, td.(Task))
 	}
 
-	l := list.New([]list.Item{}, itemDelegate{}, 65, 45)
+	l := list.New([]list.Item{}, blockItemDelegate{}, 65, 45)
+
 	l.Title = fmt.Sprintf("What other tasks does '%s' block?", t.description)
 	l.SetFilteringEnabled(false)
 	l.SetShowStatusBar(false)
+	l.SetShowHelp(false)
 
 	l.SetItems(filteredTodos)
-
-	return &Block{
+	b := Block{
 		blocking:      t,
-		todoTasks:     l,
-		selectedTasks: []Task{},
+		todoTaskList:  l,
+		todoTasks:     filteredTasks,
+		selectedTasks: map[string]bool{},
 		column:        column{},
 		index:         0,
+		help:          help.New(),
 	}
+	l.SetDelegate(blockItemDelegate{selectedTasks: b.selectedTasks})
+
+	return &b
 }
 
 func (b Block) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -89,8 +107,12 @@ func (b Block) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, keys.Enter):
 			return board.Update(b)
 		case key.Matches(msg, keys.Space):
-			selected := b.todoTasks.SelectedItem().(Task)
-			b.selectedTasks = append(b.selectedTasks, selected)
+			selected := b.todoTaskList.SelectedItem().(Task)
+			if b.selectedTasks[selected.uuid] {
+				delete(b.selectedTasks, selected.uuid)
+			} else {
+				b.selectedTasks[selected.uuid] = true
+			}
 			return b, nil
 		case key.Matches(msg, keys.Back):
 			return board.Update(nil)
@@ -98,11 +120,30 @@ func (b Block) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return b, tea.Quit
 		}
 	}
-	list, cmd := b.todoTasks.Update(msg)
-	b.todoTasks = list
+	list, cmd := b.todoTaskList.Update(msg)
+	b.todoTaskList = list
 	return b, cmd
 }
 
 func (b Block) View() string {
-	return b.column.getStyle().Render(b.todoTasks.View())
+	helpView := b.help.ShortHelpView(keys.BlockHelp())
+
+	b.todoTaskList.SetDelegate(blockItemDelegate{selectedTasks: b.selectedTasks})
+	content := b.todoTaskList.View()
+
+	return lipgloss.JoinVertical(
+		lipgloss.Left,
+		b.column.getStyle().Render(content),
+		helpView,
+	)
+}
+
+func (b Block) GetSelectedTasks() []Task {
+	var tasks []Task
+	for _, t := range b.todoTasks {
+		if b.selectedTasks[t.uuid] {
+			tasks = append(tasks, t)
+		}
+	}
+	return tasks
 }

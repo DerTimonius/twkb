@@ -3,12 +3,10 @@ package main
 import (
 	"fmt"
 
+	"github.com/DerTimonius/twkb/styles"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
-
-var confirmationStyle = lipgloss.NewStyle().Border(lipgloss.DoubleBorder()).BorderForeground(lipgloss.Color("#96CDFB")).Padding(1).Width(75).AlignHorizontal(lipgloss.Center).Foreground(lipgloss.Color("#FAE3B0"))
 
 type Confirmation struct {
 	confirm func() tea.Cmd
@@ -46,5 +44,5 @@ func (c Confirmation) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (c Confirmation) View() string {
-	return confirmationStyle.Render(fmt.Sprintf("%s (y/n)", c.message))
+	return styles.ConfirmationStyle.Render(fmt.Sprintf("%s (y/n)", c.message))
 }

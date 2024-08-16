@@ -214,8 +214,8 @@ func (t *Task) BlockTasks(tasks *[]Task) {
 	}
 
 	// TODO: update urgency of all tasks
-	for _, task := range *tasks {
-		task.blocked = true
+	for i := range *tasks {
+		(*tasks)[i].blocked = true
 	}
 }
 

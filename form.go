@@ -9,32 +9,13 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/DerTimonius/twkb/styles"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-)
-
-var (
-	formStyle = lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			Padding(1).
-			Width(65)
-
-	titleStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#96CDFB")).
-			Padding(0, 1).
-			MarginBottom(1)
-
-	inputStyle = lipgloss.NewStyle().
-			BorderStyle(lipgloss.NormalBorder()).
-			BorderForeground(lipgloss.Color("#96CDFB")).
-			PaddingLeft(1)
-
-	fieldStyle = lipgloss.NewStyle().
-			MarginBottom(1)
 )
 
 type TaskForm struct {
@@ -201,8 +182,10 @@ func (f TaskForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (f TaskForm) View() string {
-	title := titleStyle.Render("Create or update a Task")
+	title := styles.TitleStyle.Render("Create or update a Task")
 
+	fieldStyle := styles.FieldStyle
+	inputStyle := styles.InputStyle
 	inputs := lipgloss.JoinVertical(
 		lipgloss.Left,
 		fieldStyle.Render(inputStyle.Render("Description: "+f.description.View())),
@@ -220,7 +203,7 @@ func (f TaskForm) View() string {
 
 	help := f.help.View(keys)
 
-	return formStyle.Render(
+	return styles.FormStyle.Render(
 		lipgloss.JoinVertical(
 			lipgloss.Left,
 			title,
