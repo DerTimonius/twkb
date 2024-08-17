@@ -74,9 +74,15 @@ func (c column) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			f.index = APPEND
 			f.col = c
 			return f.Update(nil)
+		case key.Matches(msg, keys.Unblock):
+			task := c.list.SelectedItem().(Task)
+			conf := NewConfirmation(fmt.Sprintf("Are you sure you want to unblock the task '%s'?", task.description), c.Unblock)
+			conf.index = APPEND
+			conf.column = c
+			return conf.Update(nil)
 		case key.Matches(msg, keys.Delete):
 			task := c.list.SelectedItem().(Task)
-			conf := NewConfirmation(fmt.Sprintf("Are you sure you want to delete the task %s?", task.description), c.DeleteCurrent)
+			conf := NewConfirmation(fmt.Sprintf("Are you sure you want to delete the task '%s'?", task.description), c.DeleteCurrent)
 			conf.index = APPEND
 			conf.column = c
 			return conf.Update(nil)
@@ -125,6 +131,22 @@ func (c *column) DeleteCurrent() tea.Cmd {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+
+	var cm tea.Cmd
+	c.list, cm = c.list.Update(nil)
+	return cm
+}
+
+func (c *column) Unblock() tea.Cmd {
+	var task Task
+	var ok bool
+
+	if task, ok = c.list.SelectedItem().(Task); !ok {
+		return nil
+	}
+
+	task.UnblockTask()
+	task.blocked = false
 
 	var cm tea.Cmd
 	c.list, cm = c.list.Update(nil)

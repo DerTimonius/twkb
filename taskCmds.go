@@ -170,3 +170,14 @@ func BlockCmd(t *Task, blocked *[]Task) ([]string, error) {
 	cmd = append(cmd, fmt.Sprintf("depends:%d", t.id))
 	return cmd, nil
 }
+
+func UnblockCmd(t *Task) ([]string, error) {
+	if t.id == 0 {
+		return []string{}, errors.New("cannot unblock task with ID 0")
+	}
+	if !t.blocked {
+		return []string{}, errors.New("cannot unblock a task that is not blocked")
+	}
+
+	return []string{"task", fmt.Sprint(t.id), "modify", "depends:"}, nil
+}

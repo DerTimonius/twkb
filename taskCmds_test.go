@@ -503,3 +503,50 @@ func TestBlockCmd(t *testing.T) {
 		})
 	}
 }
+
+func TestUnblockCmd(t *testing.T) {
+	validTests := []taskTest{
+		{
+			nil,
+			"Unblock task",
+			"task 23 modify depends:",
+			Task{id: 23, description: "a basic task", blocked: true},
+		},
+	}
+
+	for _, tt := range validTests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, _ := UnblockCmd(&tt.task)
+			if strings.Join(result, " ") != tt.expected {
+				t.Errorf("StartCmd(%v) = %q, want %q", tt.task, result, tt.expected)
+			}
+		})
+	}
+
+	errorTests := []taskTest{
+		{
+			errors.New("cannot unblock task with ID 0"),
+			"Unblock task that is not blocked",
+			"",
+			Task{id: 0, description: "a basic task", blocked: true},
+		},
+		{
+			errors.New("cannot unblock a task that is not blocked"),
+			"Unblock task that is not blocked",
+			"",
+			Task{id: 32, description: "a basic task", blocked: false},
+		},
+	}
+
+	for _, tt := range errorTests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := UnblockCmd(&tt.task)
+			if err == nil {
+				t.Fatal("Expected an error, but got nil")
+			}
+			if err.Error() != tt.expectedErr.Error() {
+				t.Errorf("Expected error %v, got %v", tt.expectedErr, err)
+			}
+		})
+	}
+}

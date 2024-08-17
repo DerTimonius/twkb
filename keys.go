@@ -12,9 +12,9 @@ func (k keyMap) ShortHelp() []key.Binding {
 // key.Map interface.
 func (k keyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
-		{k.Up, k.Down, k.Left, k.Right},   // first column
-		{k.Space, k.Enter, k.New, k.Edit}, // second column
-		{k.Filter, k.Quit},                // second column
+		{k.Up, k.Down, k.Left, k.Right},        // first column
+		{k.Space, k.Enter, k.New, k.Edit},      // second column
+		{k.Block, k.Unblock, k.Filter, k.Quit}, // second column
 	}
 }
 
@@ -40,6 +40,7 @@ type keyMap struct {
 	Filter      key.Binding
 	Yes         key.Binding
 	No          key.Binding
+	Unblock     key.Binding
 	Block       key.Binding
 	BlockSelect key.Binding
 	BlockSubmit key.Binding
@@ -113,6 +114,10 @@ var keys = keyMap{
 	Yes: key.NewBinding(
 		key.WithKeys("y"),
 		key.WithHelp("y", "Yes"),
+	),
+	Unblock: key.NewBinding(
+		key.WithKeys("u"),
+		key.WithHelp("u", "unblock task"),
 	),
 	Block: key.NewBinding(
 		key.WithKeys("b"),

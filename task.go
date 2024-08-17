@@ -219,6 +219,23 @@ func (t *Task) BlockTasks(tasks *[]Task) {
 	}
 }
 
+func (t *Task) UnblockTask() {
+	cmdStr, err := UnblockCmd(t)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	cmd := exec.Command(cmdStr[0], cmdStr[1:]...)
+	err = cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	t.blocked = false
+	t.UpdateUrgency()
+}
+
 func extractUrgency(input string) (float64, error) {
 	parts := strings.Fields(input)
 
