@@ -213,10 +213,11 @@ func (t *Task) BlockTasks(tasks *[]Task) {
 		log.Fatal(err)
 	}
 
-	// TODO: update urgency of all tasks
 	for i := range *tasks {
 		(*tasks)[i].blocked = true
+		(*tasks)[i].UpdateUrgency()
 	}
+	t.UpdateUrgency()
 }
 
 func (t *Task) UnblockTask() {

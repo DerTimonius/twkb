@@ -89,7 +89,7 @@ func (c column) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, keys.Block):
 			task := c.list.SelectedItem().(Task)
 			todoTasks := board.cols[todo].list.Items()
-			b := NewBlockForm(task, todoTasks)
+			b := NewBlockForm(task, todoTasks, c.height, c.width)
 			b.index = APPEND
 			b.column = c
 			return b.Update(nil)
@@ -148,8 +148,9 @@ func (c *column) Unblock() tea.Cmd {
 	task.UnblockTask()
 	task.blocked = false
 
+	c.list.SetItem(c.list.Index(), task)
 	var cm tea.Cmd
-	c.list, cm = c.list.Update(nil)
+	c.list, cm = c.list.Update(task)
 	return cm
 }
 

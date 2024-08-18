@@ -53,7 +53,24 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, msg.confirm()
 	case Block:
 		tasks := msg.GetSelectedTasks()
+		blocker := msg.blocking
 		msg.blocking.BlockTasks(&tasks)
+		todoItems := m.cols[todo].list.Items()
+		for i, item := range todoItems {
+			task := item.(Task)
+			for _, blockedTask := range tasks {
+				if task.uuid == blockedTask.uuid && blockedTask.blocked {
+					task.blocked = true
+					task.UpdateUrgency()
+					m.cols[todo].list.SetItem(i, task)
+					break
+				}
+				if task.uuid == blocker.uuid {
+					task.UpdateUrgency()
+					m.cols[task.status].list.SetItem(i, task)
+				}
+			}
+		}
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keys.Quit):

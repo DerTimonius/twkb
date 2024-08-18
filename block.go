@@ -61,7 +61,7 @@ func (b Block) Init() tea.Cmd {
 	return nil
 }
 
-func NewBlockForm(t Task, todos []list.Item) *Block {
+func NewBlockForm(t Task, todos []list.Item, height, width int) *Block {
 	var filteredTodos []list.Item
 	var filteredTasks []Task
 
@@ -74,9 +74,9 @@ func NewBlockForm(t Task, todos []list.Item) *Block {
 		filteredTasks = append(filteredTasks, td.(Task))
 	}
 
-	l := list.New([]list.Item{}, blockItemDelegate{}, 65, 45)
+	l := list.New([]list.Item{}, blockItemDelegate{}, width, height)
 
-	l.Title = fmt.Sprintf("What other tasks does '%s' block?", t.description)
+	l.Title = fmt.Sprintf("'%s' blocks?", t.description)
 	l.SetFilteringEnabled(false)
 	l.SetShowStatusBar(false)
 	l.SetShowHelp(false)
