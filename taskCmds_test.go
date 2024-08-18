@@ -489,6 +489,13 @@ func TestBlockCmd(t *testing.T) {
 			[]Task{{id: 23, description: "a blocked task"}, {id: 42, description: "an invalid task"}, {id: 8, description: "a blocked task"}},
 			Task{id: 42, description: "a basic task"},
 		},
+		{
+			errors.New("cannot block a task that is already done"),
+			"Blocked task is already done",
+			"",
+			[]Task{{id: 23, description: "a done task", status: done}, {id: 2, description: "a blocked task"}, {id: 8, description: "a blocked task"}},
+			Task{id: 42, description: "a basic task"},
+		},
 	}
 
 	for _, tt := range errorTests {

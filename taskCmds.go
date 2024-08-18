@@ -163,6 +163,10 @@ func BlockCmd(t *Task, blocked *[]Task) ([]string, error) {
 			return []string{}, errors.New("cannot block a task with same ID")
 		}
 
+		if task.status == done {
+			return []string{}, errors.New("cannot block a task that is already done")
+		}
+
 		taskIds = append(taskIds, fmt.Sprint(task.id))
 	}
 	cmd = append(cmd, strings.Join(taskIds, ","))
