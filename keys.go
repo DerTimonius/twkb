@@ -12,9 +12,12 @@ func (k keyMap) ShortHelp() []key.Binding {
 // key.Map interface.
 func (k keyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
-		{k.Up, k.Down, k.Left, k.Right},        // first column
-		{k.Space, k.Enter, k.New, k.Edit},      // second column
-		{k.Block, k.Unblock, k.Filter, k.Quit}, // second column
+		{k.Up, k.Down},
+		{k.Left, k.Right},
+		{k.Space, k.Enter},
+		{k.New, k.Edit},
+		{k.Block, k.Unblock},
+		{k.Filter, k.Quit},
 	}
 }
 

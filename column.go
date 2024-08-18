@@ -170,7 +170,7 @@ func (c *column) getStyle() lipgloss.Style {
 	if c.Focused() {
 		return baseColumnStyle.
 			Border(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color(styles.Maroon)).
+			BorderForeground(lipgloss.Color(styles.Blue)).
 			Height(c.height).
 			Width(c.width)
 	}

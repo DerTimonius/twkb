@@ -10,26 +10,27 @@ const (
 	LightBlue = "#96CDFB"
 	Maroon    = "#eba0ac"
 	Mauve     = "#cba6f7"
-	Peach     = "#fab387"
+	Peach     = "#ffb796"
 	Red       = "#f38ba8"
 	Sapphire  = "#74c7ec"
 	Yellow    = "#f9e2af"
+	Pink      = "#f896ad"
 )
 
 var (
 	FormStyle = lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
+			Border(lipgloss.RoundedBorder()).BorderForeground(lipgloss.Color(Blue)).
 			Padding(1).
 			Width(65)
 
 	TitleStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color(LightBlue)).
+			Foreground(lipgloss.Color(Blue)).
 			Padding(0, 1).
 			MarginBottom(1)
 
 	InputStyle = lipgloss.NewStyle().
 			BorderStyle(lipgloss.NormalBorder()).
-			BorderForeground(lipgloss.Color(LightBlue)).
+			BorderForeground(lipgloss.Color(Blue)).
 			PaddingLeft(1)
 
 	FieldStyle = lipgloss.NewStyle().
@@ -44,15 +45,15 @@ var (
 
 	DefaultSelectedTitleStyle = lipgloss.NewStyle().
 					Border(lipgloss.NormalBorder(), false, false, false, true).
-					BorderForeground(lipgloss.Color(Sapphire)).
-					Foreground(lipgloss.Color(Sapphire)).
+					BorderForeground(lipgloss.Color(Pink)).
+					Foreground(lipgloss.Color(Pink)).
 					Padding(0, 0, 0, 1)
 
 	DefaultSelectedDesc = DefaultSelectedTitleStyle.Copy().
-				Foreground(lipgloss.Color(Sapphire))
+				Foreground(lipgloss.Color(Pink))
 
 	DefaultListTitleStyle = lipgloss.NewStyle().
-				Background(lipgloss.Color(Red)).
+				Background(lipgloss.Color(Blue)).
 				Foreground(lipgloss.Color(Gray)).
 				Padding(0, 1)
 )
