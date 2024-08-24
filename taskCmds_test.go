@@ -452,7 +452,7 @@ func TestBlockCmd(t *testing.T) {
 		{
 			nil,
 			"Block multiple tasks",
-			"task 23,4,8 modify depends:42",
+			"task rc.bulk=0 23,4,8 modify depends:42",
 			[]Task{{id: 23, description: "a blocked task"}, {id: 4, description: "a blocked task"}, {id: 8, description: "a blocked task"}},
 			Task{id: 42, description: "a basic task"},
 		},

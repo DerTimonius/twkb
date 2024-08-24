@@ -153,6 +153,10 @@ func BlockCmd(t *Task, blocked *[]Task) ([]string, error) {
 
 	cmd := []string{"task"}
 
+	if len(*blocked) > 2 {
+		cmd = append(cmd, "rc.bulk=0")
+	}
+
 	var taskIds []string
 	for _, task := range *blocked {
 		if task.id == 0 {
