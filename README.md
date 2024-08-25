@@ -1,8 +1,12 @@
-**twkb** (short for **t**ask**w**arrior **k**an**b**an) is a kanban-style TUI for [taskwarrior](https://taskwarrior.org), written in Go.
+**twkb** (short for **t**ask**w**arrior **k**an**b**an) is a kanban-style TUI for [taskwarrior](https://taskwarrior.org), written in Go with the [bubbletea framework](https://github.com/charmbracelet/bubbletea).
+
+![twkb demo](/assets/demo.gif)
 
 ## Features
 
 - Kanban view with `todo`, `doing` and `done columns`
+- Quickly the projects, labels and urgency of a task
+  - And also if a task is blocked or recurring
 - Creation of new tasks
 - Modifying existing tasks
 - Block and unblock tasks
